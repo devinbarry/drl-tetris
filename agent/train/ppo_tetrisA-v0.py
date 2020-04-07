@@ -1,0 +1,66 @@
+import logging
+import numpy as np
+
+import ray
+from ray.rllib.agents.ppo import PPOTrainer
+from ray.rllib.agents.ppo import DEFAULT_CONFIG
+
+from ..config import NUM_CPU, NUM_GPU
+from ..env import *
+
+
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
+# Start up Ray. This must be done before we instantiate any RL agents.
+ray.init(num_gpus=NUM_GPU, webui_host='127.0.0.1')
+
+config = DEFAULT_CONFIG.copy()
+
+config['log_level'] = 'INFO'
+config['ignore_worker_failures'] = True
+config['num_workers'] = NUM_CPU
+config['num_gpus'] = NUM_GPU
+
+# Raw output data [240, 256, 3]
+config['model']['dim'] = 84
+
+# out_size, kernel, stride
+filters_84x84 = [
+    [16, [8, 8], 4],
+    [32, [4, 4], 2],
+    [256, [11, 11], 1],
+]
+
+config['model']["conv_filters"] = filters_84x84
+
+
+config['rollout_fragment_length'] = 1000  # Size of batches collected from each worker.
+train_batch_size = config['rollout_fragment_length'] * config['num_workers']
+config['train_batch_size'] = train_batch_size  # Number of timesteps collected for each SGD round
+config['sgd_minibatch_size'] = 2048  # Default is 128.
+config['num_sgd_iter'] = 30
+
+agent = PPOTrainer(config, "TetrisA-v0")
+
+reward = -999
+epoch = 0
+
+# TetrisA-v0 - Best
+# 'episode_reward_mean': 70.15
+# 'episode_len_mean': 800.87
+# 'episode_reward_max': 115.0'
+
+while reward < 200:
+    result = agent.train()
+    print(f'=========== RESULT {epoch} =================')
+    result = dict(result)
+    del result['hist_stats']
+    print(result)
+
+    reward = result['episode_reward_mean']
+    if np.isnan(reward):
+        reward = -999
+
+    # Move to next epoch
+    epoch += 1

@@ -1,0 +1,16 @@
+# conda install pandas
+# conda install tensorflow-gpu
+
+gym-tetris
+
+# Critical Ray requirements
+ray==0.8.3
+dm-tree
+tabulate
+opencv-python-headless
+lz4
+
+# Optional Ray requirements
+psutil
+GPUtil
+tensorboardX
