@@ -1,0 +1,16 @@
+---
+
+version: '3.7'
+services:
+  training:
+    build:
+      context: .
+      dockerfile: docker/local/Dockerfile
+    image: drltetris/trainer
+    env_file:
+      - .env
+    volumes:
+      - .:/app
+    stdin_open: true
+    tty: true
+    shm_size: '8gb'
