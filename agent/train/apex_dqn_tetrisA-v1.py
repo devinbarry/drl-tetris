@@ -13,7 +13,7 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 # Start up Ray. This must be done before we instantiate any RL agents.
-ray.init(num_gpus=NUM_GPU, webui_host='127.0.0.1')
+ray.init(num_gpus=NUM_GPU, webui_host='127.0.0.1', lru_evict=True)
 
 config = DEFAULT_CONFIG.copy()
 
@@ -50,6 +50,9 @@ agent = ApexTrainer(config, "TetrisA-v2")
 
 reward = -999
 epoch = 0
+
+# This has a memory leak. After around 25 iterations it consumes all its object store memory
+# Then it explodes after being unable to put any more items into the object store.
 
 while reward < 200:
     result = agent.train()
