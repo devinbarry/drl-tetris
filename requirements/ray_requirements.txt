@@ -2,7 +2,7 @@
 --extra-index-url https://pypi.fury.io/pythonista/
 
 # Reinforcement Learning
-requests==2.23.0
+requests==2.31.0
 tensorflow-gpu==2.1.0
 
 # Versions of ray
